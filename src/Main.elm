@@ -22,6 +22,9 @@ type alias Model =
     , githubCell : CellModel
     , facebookCell : CellModel
     , wishlistCell : CellModel
+    , btcCoinCell : CoinCellModel
+    , nemCoinCell : CoinCellModel
+    , dogeCoinCell : CoinCellModel
     }
 
 
@@ -63,6 +66,33 @@ model =
         , url = "http://www.amazon.co.jp/registry/wishlist/21DI5R3QOUBXI/"
         , color = Color.color Color.Amber Color.S300
         }
+    , btcCoinCell =
+        { raised = False
+        , image = "/images/counter-party.png"
+        , qrImage = "/images/counter-party-qr.png"
+        , cellType = BtcCellType
+        , color = Color.color Color.Yellow Color.S600
+        , title = "BTC/CounterParty"
+        , subtitle = "1LvyEnNhFKHkV32YkyHzUvFddFXyoEEBPm"
+        }
+    , nemCoinCell =
+        { raised = False
+        , image = "/images/nem.png"
+        , qrImage = "/images/nem-qr.jpg"
+        , cellType = NemCellType
+        , color = Color.color Color.Teal Color.S600
+        , title = "NEM"
+        , subtitle = "ND3MJ7-U45Q26-VZOG6S-EEGPTC-QCZMKF-N2X5GX-4N42"
+        }
+    , dogeCoinCell =
+        { raised = False
+        , image = "/images/doge.png"
+        , qrImage = "/images/doge-qr.png"
+        , cellType = DogeCellType
+        , color = Color.color Color.Brown Color.S600
+        , title = "DOGE"
+        , subtitle = "DAk7obvEyivA75GFckPnErARSZh8WZWPvS"
+        }
     }
 
 type alias CellModel =
@@ -71,6 +101,16 @@ type alias CellModel =
     , cellType : CellType
     , url : String
     , color : Color
+    }
+
+type alias CoinCellModel =
+    { raised : Bool
+    , image : String
+    , qrImage : String
+    , cellType : CellType
+    , color : Color
+    , title : String
+    , subtitle : String
     }
 
 
@@ -100,6 +140,9 @@ type CellType
     | GithubCellType
     | FacebookCellType
     | WishlistCellType
+    | BtcCellType
+    | NemCellType
+    | DogeCellType
 
 
 -- Boilerplate: Msg clause for internal Mdl messages.
@@ -141,7 +184,24 @@ update msg model =
                 newCell = { wishlistcell | raised = raised }
             in
                 ( { model | wishlistCell = newCell }, Cmd.none )
-
+        Raise BtcCellType raised ->
+            let
+                coincell = model.btcCoinCell
+                newCell = { coincell | raised = raised }
+            in
+                ( { model | btcCoinCell = newCell }, Cmd.none )
+        Raise NemCellType raised ->
+            let
+                coincell = model.nemCoinCell
+                newCell = { coincell | raised = raised }
+            in
+                ( { model | nemCoinCell = newCell }, Cmd.none )
+        Raise DogeCellType raised ->
+            let
+                coincell = model.dogeCoinCell
+                newCell = { coincell | raised = raised }
+            in
+                ( { model | dogeCoinCell = newCell }, Cmd.none )
 
 
 -- VIEW
@@ -175,7 +235,10 @@ view model =
                                         ]
                           ]
             , Options.div []
-                          []
+                          [ coinCellView model.nemCoinCell
+                          , coinCellView model.btcCoinCell
+                          , coinCellView model.dogeCoinCell
+                          ]
             ]
         ]
         |> Material.Scheme.top
@@ -244,6 +307,40 @@ linkCellView model =
                 ]
             ]
 
+
+coinCellView : CoinCellModel -> Html Msg
+coinCellView model =
+    Card.view
+      [ css "width" "534px"
+      , Color.background model.color
+      , if model.raised then Elevation.e8 else Elevation.e2
+      , if model.raised then Elevation.e8 else Elevation.e2
+      , Elevation.transition 250
+      , Options.onMouseEnter (Raise model.cellType True)
+      , Options.onMouseLeave (Raise model.cellType False)
+      , margin2
+      , css "background" ("url('" ++ model.image ++ "') center / cover")
+      ]
+      [ Card.title
+          [ css "align-content" "flex-start"
+          , css "flex-direction" "row"
+          , css "align-items" "flex-start"
+          , css "justify-content" "space-between"
+          , css "padding" "8px"
+          ]
+          [ Options.div
+              []
+              [ Card.head [ white ] [ text model.title ]
+              , Card.subhead [ white ] [ text model.subtitle ]
+              ]
+          , Options.img
+              [ Options.attribute <| Html.Attributes.src model.qrImage
+              , css "height" "64px"
+              , css "width" "64px"
+              ]
+              []
+          ]
+      ]
 
 -- do here, but rather in your master .html file. See the documentation
 -- for the `Material` module for details.

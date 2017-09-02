@@ -15482,13 +15482,17 @@ var _debois$elm_mdl$Material_Scheme$top = function (content) {
 var _user$project$Main$margin2 = A2(_debois$elm_mdl$Material_Options$css, 'margin', '4px 8px 4px 0px');
 var _user$project$Main$margin1 = A2(_debois$elm_mdl$Material_Options$css, 'margin', '0');
 var _user$project$Main$white = _debois$elm_mdl$Material_Color$text(_debois$elm_mdl$Material_Color$white);
-var _user$project$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {mdl: a, userCell: b, twitterCell: c, githubCell: d, facebookCell: e, wishlistCell: f};
+var _user$project$Main$Model = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {mdl: a, userCell: b, twitterCell: c, githubCell: d, facebookCell: e, wishlistCell: f, btcCoinCell: g, nemCoinCell: h, dogeCoinCell: i};
 	});
 var _user$project$Main$CellModel = F5(
 	function (a, b, c, d, e) {
 		return {raised: a, image: b, cellType: c, url: d, color: e};
+	});
+var _user$project$Main$CoinCellModel = F7(
+	function (a, b, c, d, e, f, g) {
+		return {raised: a, image: b, qrImage: c, cellType: d, color: e, title: f, subtitle: g};
 	});
 var _user$project$Main$Raise = F2(
 	function (a, b) {
@@ -15681,6 +15685,140 @@ var _user$project$Main$linkCellView = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
+var _user$project$Main$coinCellView = function (model) {
+	return A2(
+		_debois$elm_mdl$Material_Card$view,
+		{
+			ctor: '::',
+			_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '534px'),
+			_1: {
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Color$background(model.color),
+				_1: {
+					ctor: '::',
+					_0: model.raised ? _debois$elm_mdl$Material_Elevation$e8 : _debois$elm_mdl$Material_Elevation$e2,
+					_1: {
+						ctor: '::',
+						_0: model.raised ? _debois$elm_mdl$Material_Elevation$e8 : _debois$elm_mdl$Material_Elevation$e2,
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Elevation$transition(250),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$onMouseEnter(
+									A2(_user$project$Main$Raise, model.cellType, true)),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onMouseLeave(
+										A2(_user$project$Main$Raise, model.cellType, false)),
+									_1: {
+										ctor: '::',
+										_0: _user$project$Main$margin2,
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_debois$elm_mdl$Material_Options$css,
+												'background',
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													'url(\'',
+													A2(_elm_lang$core$Basics_ops['++'], model.image, '\') center / cover'))),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_debois$elm_mdl$Material_Card$title,
+				{
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'align-content', 'flex-start'),
+					_1: {
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'flex-direction', 'row'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'align-items', 'flex-start'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'justify-content', 'space-between'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '8px'),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Card$head,
+								{
+									ctor: '::',
+									_0: _user$project$Main$white,
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(model.title),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Card$subhead,
+									{
+										ctor: '::',
+										_0: _user$project$Main$white,
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(model.subtitle),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Options$img,
+							{
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$attribute(
+									_elm_lang$html$Html_Attributes$src(model.qrImage)),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '64px'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '64px'),
+										_1: {ctor: '[]'}
+									}
+								}
+							},
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$view = function (model) {
 	return _debois$elm_mdl$Material_Scheme$top(
 		A2(
@@ -15774,7 +15912,19 @@ var _user$project$Main$view = function (model) {
 								_0: A2(
 									_debois$elm_mdl$Material_Options$div,
 									{ctor: '[]'},
-									{ctor: '[]'}),
+									{
+										ctor: '::',
+										_0: _user$project$Main$coinCellView(model.nemCoinCell),
+										_1: {
+											ctor: '::',
+											_0: _user$project$Main$coinCellView(model.btcCoinCell),
+											_1: {
+												ctor: '::',
+												_0: _user$project$Main$coinCellView(model.dogeCoinCell),
+												_1: {ctor: '[]'}
+											}
+										}
+									}),
 								_1: {ctor: '[]'}
 							}
 						}),
@@ -15840,7 +15990,7 @@ var _user$project$Main$update = F2(
 							{facebookCell: newCell}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				default:
+				case 'WishlistCellType':
 					var wishlistcell = model.wishlistCell;
 					var newCell = _elm_lang$core$Native_Utils.update(
 						wishlistcell,
@@ -15852,9 +16002,48 @@ var _user$project$Main$update = F2(
 							{wishlistCell: newCell}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
+				case 'BtcCellType':
+					var coincell = model.btcCoinCell;
+					var newCell = _elm_lang$core$Native_Utils.update(
+						coincell,
+						{raised: _p0._1});
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{btcCoinCell: newCell}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'NemCellType':
+					var coincell = model.nemCoinCell;
+					var newCell = _elm_lang$core$Native_Utils.update(
+						coincell,
+						{raised: _p0._1});
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{nemCoinCell: newCell}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				default:
+					var coincell = model.dogeCoinCell;
+					var newCell = _elm_lang$core$Native_Utils.update(
+						coincell,
+						{raised: _p0._1});
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{dogeCoinCell: newCell}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
 			}
 		}
 	});
+var _user$project$Main$DogeCellType = {ctor: 'DogeCellType'};
+var _user$project$Main$NemCellType = {ctor: 'NemCellType'};
+var _user$project$Main$BtcCellType = {ctor: 'BtcCellType'};
 var _user$project$Main$WishlistCellType = {ctor: 'WishlistCellType'};
 var _user$project$Main$FacebookCellType = {ctor: 'FacebookCellType'};
 var _user$project$Main$GithubCellType = {ctor: 'GithubCellType'};
@@ -15896,6 +16085,33 @@ var _user$project$Main$model = {
 		cellType: _user$project$Main$WishlistCellType,
 		url: 'http://www.amazon.co.jp/registry/wishlist/21DI5R3QOUBXI/',
 		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Amber, _debois$elm_mdl$Material_Color$S300)
+	},
+	btcCoinCell: {
+		raised: false,
+		image: '/images/counter-party.png',
+		qrImage: '/images/counter-party-qr.png',
+		cellType: _user$project$Main$BtcCellType,
+		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Yellow, _debois$elm_mdl$Material_Color$S600),
+		title: 'BTC/CounterParty',
+		subtitle: '1LvyEnNhFKHkV32YkyHzUvFddFXyoEEBPm'
+	},
+	nemCoinCell: {
+		raised: false,
+		image: '/images/nem.png',
+		qrImage: '/images/nem-qr.jpg',
+		cellType: _user$project$Main$NemCellType,
+		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Teal, _debois$elm_mdl$Material_Color$S600),
+		title: 'NEM',
+		subtitle: 'ND3MJ7-U45Q26-VZOG6S-EEGPTC-QCZMKF-N2X5GX-4N42'
+	},
+	dogeCoinCell: {
+		raised: false,
+		image: '/images/doge.png',
+		qrImage: '/images/doge-qr.png',
+		cellType: _user$project$Main$DogeCellType,
+		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Brown, _debois$elm_mdl$Material_Color$S600),
+		title: 'DOGE',
+		subtitle: 'DAk7obvEyivA75GFckPnErARSZh8WZWPvS'
 	}
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
