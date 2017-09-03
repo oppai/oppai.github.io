@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, href, style)
+import Task
+import Window exposing (..)
 import Material
 import Material.Scheme
 import Material.Options as Options exposing (cs, css)
@@ -17,6 +19,7 @@ import Material.Elevation as Elevation
 
 type alias Model =
     { mdl : Material.Model
+    , windowSize : Window.Size
     , userCell : CellModel
     , twitterCell : CellModel
     , githubCell : CellModel
@@ -31,6 +34,7 @@ type alias Model =
 model : Model
 model =
     { mdl = Material.model
+    , windowSize = { width = 0, height = 0 }
     , userCell =
         { raised = False
         , image = "https://www.gravatar.com/avatar/107c8aa13ba2d660df1e27614c843f75?size=512"
@@ -133,6 +137,7 @@ margin2 =
 type Msg
     = Mdl (Material.Msg Msg)
     | Raise CellType Bool
+    | WindowResult Window.Size
 
 type CellType
     = UserCellType
@@ -144,7 +149,6 @@ type CellType
     | NemCellType
     | DogeCellType
 
-
 -- Boilerplate: Msg clause for internal Mdl messages.
 
 
@@ -154,6 +158,8 @@ update msg model =
         -- Boilerplate: Mdl action handler.
         Mdl msg_ ->
             Material.update Mdl msg_ model
+        WindowResult size ->
+            ( { model | windowSize = size }, Cmd.none )
         Raise UserCellType raised ->
             let
                 usercell = model.userCell
@@ -212,33 +218,40 @@ type alias Mdl =
 
 view : Model -> Html Msg
 view model =
-    Options.div
-        [ cs "mdl-layout__content"
-        , css "margin-left" "50px"
+    Html.main_
+        [ class "mdl-layout__content"
+        , style [ ("width", "100%") ]
         ]
-        [ Html.h3 [] [ Html.text "Oppai's profile page" ]
-        , Options.div
-            []
-            [ Options.div [ css "display" "flex"
-                          ]
-                          [ Options.div []
-                                        [ userCellView model.userCell ]
-                          , Options.div [ css "align-content" "flex-start"
-                                        , css "flex-wrap" "wrap"
-                                        , css "display" "flex"
-                                        , css "width" "320px"
-                                        ]
-                                        [ linkCellView model.twitterCell
-                                        , linkCellView model.githubCell
-                                        , linkCellView model.facebookCell
-                                        , linkCellView model.wishlistCell
-                                        ]
-                          ]
-            , Options.div []
-                          [ coinCellView model.nemCoinCell
-                          , coinCellView model.btcCoinCell
-                          , coinCellView model.dogeCoinCell
-                          ]
+        [ Options.div
+            [ cs "page-content"
+            , css "margin-left" "50px"
+            ]
+            [ Html.h3 [] [ Html.text "kodam's profile page" ]
+            , Options.div
+                []
+                [ Options.div [ css "display" "flex"
+                              , css "flex-wrap" "wrap"
+                              , css "width" "90%"
+                              ]
+                              [ Options.div []
+                                            [ userCellView model.userCell ]
+                              , Options.div [ css "align-content" "flex-start"
+                                            , css "display" "flex"
+                                            , css "flex-wrap" "wrap"
+                                            , css "width" "320px"
+                                            ]
+                                            [ linkCellView model.twitterCell
+                                            , linkCellView model.githubCell
+                                            , linkCellView model.facebookCell
+                                            , linkCellView model.wishlistCell
+                                            ]
+                              ]
+                , Options.div []
+                              [ coinCellView model.nemCoinCell model.windowSize.width
+                              , coinCellView model.btcCoinCell model.windowSize.width
+                              , coinCellView model.dogeCoinCell model.windowSize.width
+                              ]
+                ]
             ]
         ]
         |> Material.Scheme.top
@@ -267,7 +280,7 @@ userCellView model =
                 ]
                 []
             , Card.title [ css "height" "64px" ] 
-                [ Card.head [ white ] [ text "oppai a.k.a. kodam" ] 
+                [ Card.head [ white ] [ text "kodam a.k.a. oppai" ] 
                 ]
             ]
 
@@ -308,10 +321,11 @@ linkCellView model =
             ]
 
 
-coinCellView : CoinCellModel -> Html Msg
-coinCellView model =
+coinCellView : CoinCellModel -> Int -> Html Msg
+coinCellView model width =
     Card.view
-      [ css "width" "534px"
+      [ css "width" (if width > 400 then "534px" else "260px")
+      , css "height" (if width > 400 then "90px" else "100px")
       , Color.background model.color
       , if model.raised then Elevation.e8 else Elevation.e2
       , if model.raised then Elevation.e8 else Elevation.e2
@@ -346,10 +360,14 @@ coinCellView model =
 -- for the `Material` module for details.
 
 
+init : ( Model, Cmd Msg )
+init =
+    model ! [ Task.perform WindowResult Window.size ]
+
 main : Program Never Model Msg
 main =
     Html.program
-        { init = ( model, Cmd.none )
+        { init = init
         , view = view
         , subscriptions = always Sub.none
         , update = update
