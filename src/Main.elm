@@ -54,7 +54,7 @@ model =
         , image = "/images/github.png"
         , cellType = GithubCellType
         , url = "https://github.com/oppai"
-        , color = Color.color Color.Pink Color.S200
+        , color = Color.color Color.Grey Color.S200
         }
     , facebookCell =
         { raised = False

@@ -16200,7 +16200,7 @@ var _user$project$Main$model = {
 		image: '/images/github.png',
 		cellType: _user$project$Main$GithubCellType,
 		url: 'https://github.com/oppai',
-		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Pink, _debois$elm_mdl$Material_Color$S200)
+		color: A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Grey, _debois$elm_mdl$Material_Color$S200)
 	},
 	facebookCell: {
 		raised: false,
