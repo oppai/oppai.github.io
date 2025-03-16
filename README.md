@@ -1,9 +1,10 @@
 oppai.github.io
 ===============
 
-my profile page
+My profile website: https://oppai.ninja
 
 ```shell
 npm install -g elm
+elm init
 ./build.sh
 ```

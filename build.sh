@@ -1,4 +1,5 @@
 #!/bin/sh
+set -ex
 
-elm-make src/Main.elm --output app.js
-python -m SimpleHTTPServer 8000
+elm make src/Main.elm --output app.js
+python3 -m http.server 8000
