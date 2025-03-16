@@ -17,25 +17,17 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-KM6KL71CVX');
     </script>
+    <script src="app.js"></script>
   </head>
 
   <body>
     <div id="elm-container"></div>
-    <script src="app.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var node = document.getElementById('elm-container');
-        try {
-          var app = Elm.Main.init({node: node});
-        } catch (e) {
-          console.error('Elmアプリケーションの初期化に失敗しました:', e);
-          node.innerHTML = '<p>アプリケーションの読み込みに失敗しました。</p>';
-        }
-      });
+    var app = Elm.Main.init({
+      node: document.getElementById('elm-container')
+    });
     </script>
   </body>
 </html>
-
