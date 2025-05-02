@@ -76,14 +76,75 @@
               planeKodam = new THREE.Mesh(kodamGeometry, kodamMaterial);
               planeKodam.userData.initialY = planeKodam.position.y;
               planeKodam.userData.time = 0;
-              planeKodam.renderOrder = 1;
+              planeKodam.renderOrder = 2;
               scene.add(planeKodam);
+
+              // --- Create Aura Particle System AFTER kodam is initialized ---
+              const particleCount = 500;
+              const particleSize = 0.03; // Keep increased particle size
+              const particlesGeometry = new THREE.BufferGeometry();
+              const positions = [];
+              const colors = [];
+              const velocities = []; // Store initial velocities for animation
+              const auraColor = new THREE.Color(0xaaaaff); // Bluish-white
+
+              for (let i = 0; i < particleCount; i++) {
+                  // Position particles in a sphere around origin (will follow planeKodam in animate)
+                  // Adjust radius calculation for denser center
+                  const randomFactor = Math.pow(Math.random(), 3); // Power makes smaller values (closer to center) more likely
+                  const radius = 1.8 + randomFactor * 1.0; // Keep the range 1.5 to 2.5, but bias towards 1.5
+
+                  const theta = Math.random() * Math.PI * 2;
+                  const phi = Math.acos((Math.random() * 2) - 1); // Distribute uniformly on sphere
+
+                  const x = radius * Math.sin(phi) * Math.cos(theta);
+                  const y = radius * Math.sin(phi) * Math.sin(theta);
+                  const z = radius * Math.cos(phi) - 0.2; // Slightly behind? Adjust as needed.
+
+                  positions.push(x, y, z);
+
+                  // Add slight color variation and set initial alpha to 1.0
+                  const variance = Math.random() * 0.3;
+                  colors.push(auraColor.r + variance, auraColor.g + variance, auraColor.b + variance, 1.0); // Add alpha = 1.0
+
+                  // Store random velocity/phase for animation
+                  velocities.push(
+                      (Math.random() - 0.5) * 0.02, // x velocity/phase
+                      (Math.random() - 0.5) * 0.02, // y velocity/phase
+                      Math.random() * Math.PI * 2   // time offset
+                  );
+              }
+
+              particlesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+              // Set color attribute with 4 components (RGBA)
+              particlesGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4)); 
+              particlesGeometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3)); // Store velocities in geometry
+
+              const particleMaterial = new THREE.PointsMaterial({
+                  size: particleSize, // Use the variable
+                  sizeAttenuation: true,
+                  vertexColors: true, // Use colors defined in geometry
+                  transparent: true,
+                  blending: THREE.AdditiveBlending, // Make particles glow when overlapping
+                  depthWrite: false, // Helps with transparency issues
+              });
+
+              const auraParticles = new THREE.Points(particlesGeometry, particleMaterial);
+              auraParticles.userData.initialPositions = particlesGeometry.attributes.position.clone(); // Store initial positions
+              auraParticles.renderOrder = 1; // Changed from 2 to 1 (behind kodam, in front of ghost)
+              scene.add(auraParticles);
+              // --- End Aura Particle System ---
+
           } catch (error) {
               console.error('An error happened loading the kodam texture:', error);
               // Fallback for kodam plane
               const geometry = new THREE.PlaneGeometry(5, 5);
               const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
               planeKodam = new THREE.Mesh(geometry, material);
+              // Ensure fallback planeKodam also has necessary properties if aura depends on them later
+              planeKodam.userData.initialY = planeKodam.position.y; 
+              planeKodam.userData.time = 0;
+              planeKodam.renderOrder = 2; // Keep render order consistent (Changed from 1 to 2)
               scene.add(planeKodam);
           }
 
@@ -166,7 +227,7 @@
                 cardMesh.userData.speed = 0.01 + Math.random() * 0.02; // Random speed
                 cardMesh.userData.amplitude = 0.1 + Math.random() * 0.05; // Random amplitude
 
-                cardMesh.renderOrder = 2; // Ensure cards are rendered in front of kodam
+                cardMesh.renderOrder = 3; // Ensure cards are rendered in front of aura
 
                 scene.add(cardMesh);
                 cardMeshes.push(cardMesh);
@@ -202,6 +263,59 @@
             card.userData.time += card.userData.speed;
             card.position.y = card.userData.initialY + Math.sin(card.userData.time) * card.userData.amplitude;
         });
+
+        // --- Animate Aura Particles ---
+        const aura = scene.children.find(child => child instanceof THREE.Points); // Find the particles
+        if (aura && planeKodam) { // Ensure planeKodam exists
+            // Make aura follow kodam's position
+            aura.position.copy(planeKodam.position); 
+            // Optional: Adjust aura's relative position slightly if needed
+            // aura.position.y -= 0.2; // Example: Slightly lower the aura center
+
+            const positions = aura.geometry.attributes.position;
+            const colorsAttribute = aura.geometry.attributes.color; // Get color attribute
+            const initialPositions = aura.userData.initialPositions;
+            const velocities = aura.geometry.attributes.velocity; // Get velocities
+            const time = Date.now() * 0.0015; // Increase animation speed slightly
+
+            // Animate material opacity for sparkling effect - REMOVED
+            // aura.material.opacity = Math.abs(Math.sin(time * 2.0)); 
+
+            for (let i = 0; i < positions.count; i++) {
+                const ix = initialPositions.getX(i);
+                const iy = initialPositions.getY(i);
+                const iz = initialPositions.getZ(i);
+
+                const vx = velocities.getX(i); // Use stored velocity/phase x
+                const vy = velocities.getY(i); // Use stored velocity/phase y
+                const timeOffset = velocities.getZ(i); // Use stored time offset
+
+                // --- Restore animation, remove drift ---
+                // Simple oscillation (adjust complexity as needed)
+                // Increase frequency by multiplying time inside sin/cos
+                positions.setX(i, ix + Math.sin(time * 1.5 + timeOffset) * 0.12); // Faster frequency, slightly larger amplitude
+                positions.setY(i, iy + Math.cos(time * 1.5 + timeOffset) * 0.12); // Faster frequency, slightly larger amplitude
+                // positions.setZ(i, iz); // Keep Z the same or animate it too
+                // --- ---
+
+                // --- Animate individual particle alpha ---
+                const alpha = Math.abs(Math.sin(time * 2.0 + timeOffset)); // Calculate individual alpha
+                colorsAttribute.setW(i, alpha); // Set the 4th component (alpha) of the color attribute
+                // --- ---
+
+                // Optional: Animate opacity via material or individual alpha attribute
+                // For material opacity: aura.material.opacity = Math.abs(Math.sin(time * 0.5)); // Replaced by the line above
+            }
+            // Ensure positions are set at least once if animation is disabled
+            // If particles still don't show, the issue might be initial positioning or material/rendering.
+            positions.needsUpdate = true; // Restore this line as positions are updated again
+            colorsAttribute.needsUpdate = true; // IMPORTANT: Tell three.js to update colors attribute
+            // --- No need to update positions if they are not changed ---
+
+            // Optional: Animate overall rotation or scale of the aura
+            // aura.rotation.y += 0.001;
+        }
+        // --- End Animate Aura Particles ---
 
         controls.update(); // Required if controls.enableDamping or controls.autoRotate are set to true
         renderer.render(scene, camera);
