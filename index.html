@@ -56,6 +56,7 @@
       const textureLoader = new THREE.TextureLoader();
       let planeKodam, planeGohst;
       const cardMeshes = []; // Array to hold card meshes
+      const effectMeshes = []; // Array to hold effect meshes
 
       // Async function to initialize scene elements that depend on textures
       async function initScene() {
@@ -179,6 +180,58 @@
               scene.add(planeGohst);
           }
 
+          // --- Create Effect Planes behind Gohst ---
+          try {
+              const effectTexture = await textureLoader.loadAsync('assets/effect.png');
+              const effectAspectRatio = effectTexture.image.width / effectTexture.image.height;
+              const effectPlaneHeight = 3.0; // Adjust size as needed
+              const effectPlaneWidth = effectPlaneHeight * effectAspectRatio;
+              const effectGeometry = new THREE.PlaneGeometry(effectPlaneWidth, effectPlaneHeight);
+
+              const effectMaterial = new THREE.MeshStandardMaterial({
+                  map: effectTexture,
+                  side: THREE.DoubleSide,
+                  transparent: true,
+                  depthWrite: false, // Usually good for transparent effects
+                  alphaTest: 0.1,   // Adjust if needed based on texture transparency
+                  opacity: 0.7      // Adjust opacity
+              });
+
+              // Create two effect planes
+              const effectPlane1 = new THREE.Mesh(effectGeometry, effectMaterial.clone()); // Clone material for potential individual changes
+              const effectPlane2 = new THREE.Mesh(effectGeometry, effectMaterial.clone());
+
+              // Position behind gohst
+              const basePosition = planeGohst ? planeGohst.position.clone() : new THREE.Vector3(0, 0, -0.2); // Fallback position if gohst hasn't loaded
+              basePosition.x -= 0.7;
+              basePosition.y += 1.0;
+              basePosition.z -= 0.1; // Place slightly behind gohst's z
+
+              effectPlane1.position.copy(basePosition);
+              effectPlane2.position.copy(basePosition);
+              effectPlane2.position.x += 4.0;
+
+              // Rotate the planes
+              effectPlane1.rotation.z = Math.PI / 4; // +45 degrees
+              effectPlane2.rotation.z = -Math.PI / 4; // -45 degrees
+
+              // Add animation data
+              [effectPlane1, effectPlane2].forEach((plane, index) => {
+                  plane.userData.initialY = plane.position.y;
+                  plane.userData.time = Math.random() * Math.PI * 2; // Random start time
+                  plane.userData.speed = 0.015 + Math.random() * 0.01; // Random speed
+                  plane.userData.amplitude = 0.15 + Math.random() * 0.05; // Random amplitude
+                  plane.renderOrder = -1; // Set render order behind gohst
+                  scene.add(plane);
+                  effectMeshes.push(plane); // Add to the array
+              });
+
+          } catch (error) {
+              console.error('An error happened loading the effect texture:', error);
+              // No fallback for effect planes for now
+          }
+          // --- End Effect Planes ---
+
           // Load cards texture and create card planes
           try {
             const cardsTexture = await textureLoader.loadAsync('assets/cards.png');
@@ -262,6 +315,12 @@
         cardMeshes.forEach(card => {
             card.userData.time += card.userData.speed;
             card.position.y = card.userData.initialY + Math.sin(card.userData.time) * card.userData.amplitude;
+        });
+
+        // Floating animation for effect planes
+        effectMeshes.forEach(effect => {
+            effect.userData.time += effect.userData.speed;
+            effect.position.y = effect.userData.initialY + Math.sin(effect.userData.time) * effect.userData.amplitude;
         });
 
         // --- Animate Aura Particles ---
