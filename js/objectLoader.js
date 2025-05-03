@@ -201,6 +201,104 @@ async function loadObjects(scene, textureLoader) {
     } catch(error) {
         console.error('An error happened loading the cards texture:', error);
     }
+
+    // --- Create Ground Plane using CanvasTexture ---
+    try {
+        // 1. Load both background textures
+        const bgTexture = await textureLoader.loadAsync('assets/ground.png');
+        const bgNoneTexture = await textureLoader.loadAsync('assets/ground-none.png');
+
+        // 2. Create a Canvas element
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Define canvas size (can be adjusted for quality vs performance)
+        // Make it large enough to capture detail from both textures
+        const canvasSize = 1024; // Power of 2 often preferred for textures
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+
+        // 3. Draw textures onto the canvas
+        // Ensure images are loaded before drawing
+        const bgImg = bgTexture.image;
+        const bgNoneImg = bgNoneTexture.image;
+
+        if (bgImg && bgNoneImg) {
+            // Draw the repeating background-none texture first
+            ctx.fillStyle = ctx.createPattern(bgNoneImg, 'repeat');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the central background.png
+            // Calculate the size and position to draw the central image
+            // Assuming background.png should cover the central area of the ground plane.
+            // Let's say the central image should cover 1/4th of the canvas width/height.
+            const centralImageSize = canvasSize / 8; // Adjust this ratio as needed
+            const centralImageX = (canvasSize - centralImageSize) / 2;
+            const centralImageY = (canvasSize - centralImageSize) / 2;
+            ctx.drawImage(bgImg, centralImageX, centralImageY, centralImageSize, centralImageSize);
+
+        } else {
+            console.error('Background images not loaded for canvas drawing.');
+            // Optional fallback drawing
+            ctx.fillStyle = 'grey';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'darkgrey';
+            const centralImageSize = canvasSize / 4;
+            const centralImageX = (canvasSize - centralImageSize) / 2;
+            const centralImageY = (canvasSize - centralImageSize) / 2;
+            ctx.fillRect(centralImageX, centralImageY, centralImageSize, centralImageSize);
+        }
+
+        // 4. Create CanvasTexture
+        const groundCanvasTexture = new THREE.CanvasTexture(canvas);
+        groundCanvasTexture.needsUpdate = true; // Important!
+
+        // 5. Create ground geometry and material using the canvas texture
+        const groundGeometry = new THREE.PlaneGeometry(50, 50); // Same size as before
+        const groundMaterial = new THREE.MeshStandardMaterial({
+            map: groundCanvasTexture, // Use the canvas texture
+            side: THREE.DoubleSide
+        });
+
+        const groundPlane = new THREE.Mesh(groundGeometry, groundMaterial);
+        groundPlane.rotation.x = -Math.PI / 2;
+        groundPlane.position.y = -2.5;
+        groundPlane.renderOrder = -3;
+        scene.add(groundPlane);
+
+    } catch (error) {
+        console.error('An error happened creating the ground canvas texture:', error);
+    }
+    // --- End Ground Plane ---
+
+    // --- Create Wall Plane ---
+    try {
+        const wallTexture = await textureLoader.loadAsync('assets/wall.png');
+        // Configure texture wrapping and repetition for tiling (optional)
+        wallTexture.wrapS = THREE.RepeatWrapping;
+        wallTexture.wrapT = THREE.RepeatWrapping;
+        const wallRepeats = 5; // Halved: Texture appears larger
+        wallTexture.repeat.set(wallRepeats, wallRepeats);
+
+        // Wall geometry - adjust size as needed
+        const wallGeometry = new THREE.PlaneGeometry(50, 50); // Width, Height
+        const wallMaterial = new THREE.MeshStandardMaterial({
+            map: wallTexture,
+            side: THREE.DoubleSide
+        });
+        const wallPlane = new THREE.Mesh(wallGeometry, wallMaterial);
+
+        // Position the wall behind other objects
+        // wallPlane.rotation.y = ? // If needed
+        wallPlane.position.y = 7.5; // Adjust Y position (centered or based on ground level)
+        wallPlane.position.z = -10; // Position behind everything
+        wallPlane.renderOrder = -4; // Render behind ground plane (-3)
+
+        scene.add(wallPlane);
+    } catch (error) {
+        console.error('An error happened loading the wall texture:', error);
+    }
+    // --- End Wall Plane ---
 }
 
 // Export loaded objects and the loader function

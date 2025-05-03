@@ -45,7 +45,7 @@
               "properties": {
                 "radius": 5,
                 "x": 0,
-                "y": 1,
+                "y": 0.5,
                 "z": -10,
                 "theta": 120,
                 "isEnabled": true
@@ -88,7 +88,7 @@
               "type": "Force",
               "properties": {
                 "fx": 0,
-                "fy": 1,
+                "fy": 0.5,
                 "fz": -0.2,
                 "life": null,
                 "easing": "easeLinear"
