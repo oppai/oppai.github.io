@@ -10,11 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Purge cache
-        uses: nathanvaughn/actions-cloudflare-purge@4d1e68e82c7f3766a87cbcb4dd88e05d0f807c1b # > v3.1.0
         env:
           CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
           CLOUDFLARE_AUTH_KEY: ${{ secrets.CLOUDFLARE_AUTH_KEY }}
-        with:
-          cf_zone: "$CLOUDFLARE_ZONE"
-          cf_auth: "$CLOUDFLARE_AUTH_KEY"
-          hosts: "oppai.ninja"
+        run: |
+          curl -X POST https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE/purge_cache \
+              -H "Authorization: Bearer $CLOUDFLARE_AUTH_KEY" \
+              -d '{"hosts":["oppai.ninja"]}'
