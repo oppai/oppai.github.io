@@ -16,7 +16,7 @@ export default defineConfig({
   },
   plugins: [
     visualizer({
-      open: true,
+      open: false,
       filename: 'stats.html',
     }),
   ]
