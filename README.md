@@ -2,7 +2,7 @@
 
 My profile website: https://oppai.ninja
 
-<img src="./public/assets/golden-image.png">
+<img src="./public/assets/golden-image.png" width="600">
 
 ## Development
 
