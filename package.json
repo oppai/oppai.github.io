@@ -4,8 +4,8 @@
   "description": "oppai.github.io ===============",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build"
+    "dev": "npm run build && cd docs && vite",
+    "build": "vite build && rm -f docs/assets/*.png docs/assets/.DS_Store"
   },
   "repository": {
     "type": "git",
