@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { scene, camera, renderer, controls, initializeRenderer } from './sceneSetup.js';
-import { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles } from './objectLoader.js';
+import { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes } from './objectLoader.js';
 import { setupNebula } from './nebulaSetup.js'; // Import setupNebula function
 import { startAnimationLoop } from './animation.js';
+import { initializeRaycaster } from './raycasterHandler.js'; // Import initializeRaycaster function
 
 // Main initialization function
 async function main() {
@@ -18,6 +19,12 @@ async function main() {
     // Setup Nebula system
     const nebulaSystem = await setupNebula(scene); // Get nebulaSystem from setup function
 
+    // --- Raycasterの初期化 ---
+    // Add linkMeshes to the array of clickable objects
+    const objectsToClick = [planeKodam, planeGohst, ...cardMeshes, ...linkMeshes]; 
+    initializeRaycaster(renderer, camera, objectsToClick); 
+    // ----------------------
+
     // Prepare context for the animation loop
     const animationContext = {
         scene,
@@ -29,6 +36,7 @@ async function main() {
         cardMeshes, // Exported from objectLoader
         effectMeshes, // Exported from objectLoader
         auraParticles, // Exported from objectLoader
+        linkMeshes, // Exported from objectLoader (Pass it to animation if needed, otherwise raycaster is enough)
         nebulaSystem // Returned from setupNebula
     };
 

@@ -5,6 +5,7 @@ let planeKodam, planeGohst;
 const cardMeshes = [];
 const effectMeshes = [];
 let auraParticles;
+const linkMeshes = []; // Array to hold clickable link meshes
 
 // Async function to load textures and create meshes
 async function loadObjects(scene, textureLoader) {
@@ -299,7 +300,72 @@ async function loadObjects(scene, textureLoader) {
         console.error('An error happened loading the wall texture:', error);
     }
     // --- End Wall Plane ---
+
+    // --- Create Link Planes (Bottom and Top Rows) ---
+    const linkPlaneSize = 1.0; // Keep increased size or adjust
+    const linkSpacing = 1.0;   // Keep increased spacing or adjust
+    const linkZ = 3.0;         // Z position
+
+    // Define links for each row
+    const bottomLinks = [
+        { name: 'x', file: 'assets/x.png', url: 'https://x.com/kodam' },
+        { name: 'github', file: 'assets/github.png', url: 'https://github.com/oppai' },
+        { name: 'cv', file: 'assets/cv.png', url: 'https://gist.github.com/oppai/5e10c6bd03c9d53f50564a369be2f940' }
+    ];
+    const topLinks = [
+        { name: 'ai', file: 'assets/ai.png', url: 'https://note.com/0ppai' },
+        { name: 'poker', file: 'assets/poker.png', url: 'https://note.com/brianpoker' }
+    ];
+
+    // Function to create and position planes for a row
+    async function createLinkRow(links, yPos, renderOrderOffset = 0) {
+        const startX = - (links.length - 1) * linkSpacing / 2;
+        for (let i = 0; i < links.length; i++) {
+            const linkInfo = links[i];
+            try {
+                const texture = await textureLoader.loadAsync(linkInfo.file);
+                const geometry = new THREE.PlaneGeometry(linkPlaneSize, linkPlaneSize);
+                const material = new THREE.MeshStandardMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    depthWrite: false,
+                    alphaTest: 0.1
+                });
+                const plane = new THREE.Mesh(geometry, material);
+
+                plane.position.x = startX + i * linkSpacing;
+                plane.position.y = yPos;
+                plane.position.z = linkZ;
+
+                plane.userData = { 
+                    type: 'link', 
+                    name: linkInfo.name,
+                    url: linkInfo.url,
+                    initialY: yPos,      // Store initial Y
+                    initialZ: linkZ       // Store initial Z
+                };
+                plane.renderOrder = 4 + renderOrderOffset; // Ensure they are in front
+
+                scene.add(plane);
+                linkMeshes.push(plane); // Add to the global array for raycasting
+
+            } catch (error) {
+                console.error(`An error happened loading the ${linkInfo.name} texture:`, error);
+            }
+        }
+    }
+
+    // Create bottom row
+    const linkY_bottom = -2.0; // Adjust Y position for bottom
+    await createLinkRow(bottomLinks, linkY_bottom, 0);
+
+    // Create top row
+    const linkY_top = 2.5; // Adjust Y position for top
+    await createLinkRow(topLinks, linkY_top, 1); // Slightly higher render order for top if needed?
+
+    // --- End Link Planes ---
 }
 
 // Export loaded objects and the loader function
-export { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles }; 
+export { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes }; 
