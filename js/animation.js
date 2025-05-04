@@ -14,6 +14,13 @@ let linkAnimationState = 'JIGGLING'; // State: JIGGLING or PAUSED
 let pauseTimer = 0;
 const pauseDurationFrames = 60; // Pause duration in frames (e.g., 60 frames = 1 second at 60fps)
 
+const clock = new THREE.Clock();
+
+// シェイクアニメーションのパラメータ
+const shakeDuration = 0.4; // 振動時間 (秒)
+const shakeAmplitude = 0.05; // 振動の幅
+const shakeFrequency = 25; // 振動の速さ (ラジアン/秒のようなもの)
+
 // The main animation function
 function animate(context) {
     // Destructure necessary components from the context
@@ -30,6 +37,24 @@ function animate(context) {
     if (planeKodam) {
         planeKodam.userData.time += 0.02;
         planeKodam.position.y = planeKodam.userData.initialY + Math.sin(planeKodam.userData.time) * 0.2;
+
+        // 表情変更時のシェイクアニメーション
+        if (planeKodam.userData.needsShakeAnimation) {
+            planeKodam.userData.isShaking = true;
+            planeKodam.userData.shakeStartTime = Date.now() * 0.001;
+            planeKodam.userData.needsShakeAnimation = false; // フラグをリセット
+        }
+
+        if (planeKodam.userData.isShaking) {
+            const shakeTime = Date.now() * 0.001 - planeKodam.userData.shakeStartTime;
+            if (shakeTime < shakeDuration) {
+                // サイン波で左右に振動
+                planeKodam.position.x = Math.sin(shakeTime * shakeFrequency) * shakeAmplitude * (1 - shakeTime / shakeDuration); // 徐々に減衰
+            } else {
+                planeKodam.userData.isShaking = false;
+                planeKodam.position.x = 0; // 振動が終わったら元の位置に
+            }
+        }
     }
 
     // Floating animation for gohst
@@ -42,6 +67,7 @@ function animate(context) {
     cardMeshes.forEach(card => {
         card.userData.time += card.userData.speed;
         card.position.y = card.userData.initialY + Math.sin(card.userData.time) * card.userData.amplitude;
+        card.rotation.z = Math.sin(card.userData.time) * 0.1;
     });
 
     // Floating animation for effect planes

@@ -1,53 +1,97 @@
 import * as THREE from 'three';
+import { planeKodam, linkMeshes, rotateKodamExpression } from './objectLoader'; // rotateKodamExpression をインポート
 
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let cameraRef; // カメラへの参照を保持
-let clickableObjects = []; // クリック対象オブジェクトの配列
+let raycaster;
+let mouse;
+let camera;
+let clickableObjects = []; // kodam も含めるように変更する可能性あり
 
-function onMouseClick(event) {
-    // Canvas内の相対的なマウスポインタ位置を計算 (-1 to +1)
-    const rect = event.target.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+// クリックカウンター
+let kodamClickCount = 0;
 
-    // Raycasterを更新
-    raycaster.setFromCamera(mouse, cameraRef);
+function initRaycaster(mainCamera) {
+    camera = mainCamera;
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
 
-    // オブジェクトとの交差を検出
-    const intersects = raycaster.intersectObjects(clickableObjects, true); // trueで子孫もチェック
+    // クリック可能なオブジェクトを更新 (初期化時)
+    // planeKodam が初期化された後に呼ぶ必要があるため、main.js 側で実行する方が良いかもしれない
+    // ここでは一旦 linkMeshes のみ初期化
+    clickableObjects = [...linkMeshes];
+
+    window.addEventListener('click', onClick, false);
+    window.addEventListener('mousemove', onMouseMove, false);
+}
+
+// クリック可能なオブジェクトのリストを更新する関数
+function updateClickableObjects() {
+    // planeKodam が存在すればリストに追加
+    clickableObjects = [...linkMeshes];
+    if (planeKodam) {
+        clickableObjects.push(planeKodam);
+    }
+    // console.log('Clickable objects updated:', clickableObjects); // デバッグ用
+}
+
+function onClick(event) {
+    // マウス座標を正規化デバイス座標 (-1 to +1) に変換
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // レイキャスターを更新
+    raycaster.setFromCamera(mouse, camera);
+
+    // クリック可能なオブジェクトとの交差を検出
+    // updateClickableObjects を呼んで最新のリストを使う
+    updateClickableObjects();
+    const intersects = raycaster.intersectObjects(clickableObjects);
 
     if (intersects.length > 0) {
-        // 最初に交差したオブジェクトを取得
-        // 念のため、最も近い表示オブジェクトを探す (透明なPlaneが重なる場合など)
-        let targetObject = null;
-        for (const intersect of intersects) {
-            // userData.urlを持つ最も近いオブジェクトを見つける
-            if (intersect.object.userData && intersect.object.userData.url) {
-                targetObject = intersect.object;
-                break; // 最初に見つかったものを採用
+        const intersectedObject = intersects[0].object;
+
+        // Kodam がクリックされた場合の処理
+        if (intersectedObject.name === "kodam") { // 名前で判定
+            kodamClickCount++;
+            // console.log(`Kodam clicked: ${kodamClickCount}`); // デバッグ用
+            if (kodamClickCount % 5 === 0) {
+                // console.log('Rotating expression!'); // デバッグ用
+                rotateKodamExpression();
             }
         }
-
-        // userDataにurlがあるかチェック
-        if (targetObject && targetObject.userData && targetObject.userData.url) {
-            console.log(`Clicked on ${targetObject.userData.name || 'object'}, navigating to: ${targetObject.userData.url}`);
-            // 新しいタブでURLを開く
-            window.open(targetObject.userData.url, '_blank'); 
-            // または現在のタブで遷移:
-            // window.location.href = targetObject.userData.url;
+        // リンクオブジェクトがクリックされた場合の処理 (既存のロジック)
+        else if (intersectedObject.userData && intersectedObject.userData.type === 'link') {
+            console.log('Link clicked:', intersectedObject.userData.url);
+            window.open(intersectedObject.userData.url, '_blank');
         }
+        // 他のクリック可能なオブジェクトタイプがあればここに追加
+        // else if (intersectedObject.name === "someOtherObject") { ... }
     }
 }
 
-// イベントリスナーを設定する初期化関数
-function initializeRaycaster(renderer, camera, objects) {
-    cameraRef = camera;
-    clickableObjects = objects; // クリック対象のオブジェクトを更新
-    // Remove existing listener before adding a new one to prevent duplicates
-    renderer.domElement.removeEventListener('click', onMouseClick, false);
-    renderer.domElement.addEventListener('click', onMouseClick, false);
-    console.log('Raycaster initialized. Clickable objects:', clickableObjects.map(o => o.userData.name || 'Unnamed')); // Log names
+function onMouseMove(event) {
+    // マウス座標を正規化デバイス座標 (-1 to +1) に変換
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // レイキャスターを更新
+    raycaster.setFromCamera(mouse, camera);
+
+    // クリック可能なオブジェクトとの交差を検出
+    updateClickableObjects(); // マウスオーバー検出のためにもリストを更新
+    const intersects = raycaster.intersectObjects(clickableObjects);
+
+    // カーソルスタイルの変更
+    if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        // Kodam またはリンクの上にマウスがある場合
+        if (intersectedObject.name === "kodam" || (intersectedObject.userData && intersectedObject.userData.type === 'link')) {
+             document.body.style.cursor = 'pointer';
+        } else {
+             document.body.style.cursor = 'default';
+        }
+    } else {
+        document.body.style.cursor = 'default';
+    }
 }
 
-export { initializeRaycaster }; 
+export { initRaycaster, updateClickableObjects }; // updateClickableObjects もエクスポート 

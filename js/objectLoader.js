@@ -7,44 +7,61 @@ const effectMeshes = [];
 let auraParticles;
 const linkMeshes = []; // Array to hold clickable link meshes
 
+// Kodam 表情管理
+const kodamExpressions = {
+  kodam: null,
+  tru: null,
+  sup: null,
+};
+const expressionKeys = Object.keys(kodamExpressions); // ['kodam', 'tru', 'sup']
+let currentExpressionIndex = 0;
+
 // Async function to load textures and create meshes
 async function loadObjects(scene, textureLoader) {
     // --- Start Parallel Texture Loading ---
     const texturePromises = [
-        textureLoader.loadAsync('/assets/kodam.avif'),        // 0: kodam
-        textureLoader.loadAsync('/assets/gohst.avif'),        // 1: gohst
-        textureLoader.loadAsync('/assets/effect.avif'),       // 2: effect
-        textureLoader.loadAsync('/assets/cards.avif'),        // 3: cards
-        textureLoader.loadAsync('/assets/ground.avif'),       // 4: bg
-        textureLoader.loadAsync('/assets/ground-none.avif'), // 5: bgNone
-        textureLoader.loadAsync('/assets/wall.avif')          // 6: wall
-        // Note: Link textures are loaded later within createLinkRow
+        textureLoader.loadAsync('/assets/kodam.avif').catch(e => { console.error('Failed to load kodam', e); return null; }),        // 0: kodam (default)
+        textureLoader.loadAsync('/assets/gohst.avif').catch(e => { console.error('Failed to load gohst', e); return null; }),        // 1: gohst
+        textureLoader.loadAsync('/assets/effect.avif').catch(e => { console.error('Failed to load effect', e); return null; }),       // 2: effect
+        textureLoader.loadAsync('/assets/cards.avif').catch(e => { console.error('Failed to load cards', e); return null; }),        // 3: cards
+        textureLoader.loadAsync('/assets/ground.avif').catch(e => { console.error('Failed to load ground', e); return null; }),       // 4: bg
+        textureLoader.loadAsync('/assets/ground-none.avif').catch(e => { console.error('Failed to load ground-none', e); return null; }), // 5: bgNone
+        textureLoader.loadAsync('/assets/wall.avif').catch(e => { console.error('Failed to load wall', e); return null; }),          // 6: wall
+        // Kodam Expressions
+        textureLoader.loadAsync('/assets/kodam-tru.avif').catch(e => { console.error('Failed to load kodam-tru', e); return null; }),    // 7: kodam tru
+        textureLoader.loadAsync('/assets/kodam-sup.avif').catch(e => { console.error('Failed to load kodam-sup', e); return null; })     // 8: kodam sup
     ];
 
-    let kodamTexture, gohstTexture, effectTexture, cardsTexture, bgTexture, bgNoneTexture, wallTexture;
+    let kodamTexture, gohstTexture, effectTexture, cardsTexture, bgTexture, bgNoneTexture, wallTexture, kodamTruTexture, kodamSupTexture;
 
     try {
         // Wait for all main textures to load in parallel
         const loadedTextures = await Promise.all(texturePromises);
-        [kodamTexture, gohstTexture, effectTexture, cardsTexture, bgTexture, bgNoneTexture, wallTexture] = loadedTextures;
+        // 分割代入で結果を取得
+        [kodamTexture, gohstTexture, effectTexture, cardsTexture, bgTexture, bgNoneTexture, wallTexture, kodamTruTexture, kodamSupTexture] = loadedTextures;
+
+        // kodamExpressions オブジェクトに格納
+        kodamExpressions.kodam = kodamTexture;
+        kodamExpressions.tru = kodamTruTexture;
+        kodamExpressions.sup = kodamSupTexture;
+
     } catch (error) {
-        console.error('An error happened during parallel texture loading:', error);
-        // Handle error appropriately - maybe use fallback textures or stop execution
-        // For simplicity, we'll just log and potentially continue with undefined textures
-        // which might cause errors later if not handled in mesh creation try/catch blocks.
+        // Promise.all 自体のエラー (上記 .catch で個別にハンドルしているので、通常ここには来ないはず)
+        console.error('An error happened during parallel texture loading Promise.all:', error);
     }
     // --- End Parallel Texture Loading ---
 
     // Load Kodam
     try {
-        // const kodamTexture = await textureLoader.loadAsync('/assets/kodam.avif'); // Removed: Loaded above
-        if (kodamTexture) { // Check if texture loaded successfully
-            const kodamAspectRatio = kodamTexture.image.width / kodamTexture.image.height;
+        const initialKodamTexture = kodamExpressions.kodam; // デフォルトの表情を使う
+        if (initialKodamTexture) { // Check if texture loaded successfully
+            const kodamAspectRatio = initialKodamTexture.image.width / initialKodamTexture.image.height;
             const kodamPlaneHeight = 5;
             const kodamPlaneWidth = kodamPlaneHeight * kodamAspectRatio;
             const kodamGeometry = new THREE.PlaneGeometry(kodamPlaneWidth, kodamPlaneHeight);
+            // マテリアルには初期テクスチャを設定
             const kodamMaterial = new THREE.MeshStandardMaterial({
-                map: kodamTexture,
+                map: initialKodamTexture,
                 side: THREE.DoubleSide,
                 transparent: true,
                 depthWrite: false,
@@ -53,7 +70,9 @@ async function loadObjects(scene, textureLoader) {
             planeKodam = new THREE.Mesh(kodamGeometry, kodamMaterial);
             planeKodam.userData.initialY = planeKodam.position.y;
             planeKodam.userData.time = 0;
+            planeKodam.userData.needsShakeAnimation = false;
             planeKodam.renderOrder = 2;
+            planeKodam.name = "kodam"; // Raycaster で識別できるように名前を設定
             scene.add(planeKodam);
 
             // Create Aura Particle System AFTER kodam is initialized
@@ -97,7 +116,7 @@ async function loadObjects(scene, textureLoader) {
             auraParticles.renderOrder = 1;
             scene.add(auraParticles);
         } else {
-            throw new Error('Kodam texture failed to load.'); // Trigger catch block
+            throw new Error('Initial Kodam texture failed to load.'); // Trigger catch block
         }
     } catch (error) {
         console.error('An error happened setting up the kodam object or aura:', error);
@@ -107,13 +126,14 @@ async function loadObjects(scene, textureLoader) {
         planeKodam = new THREE.Mesh(geometry, material);
         planeKodam.userData.initialY = planeKodam.position.y;
         planeKodam.userData.time = 0;
+        planeKodam.userData.needsShakeAnimation = false;
         planeKodam.renderOrder = 2;
+        planeKodam.name = "kodam"; // fallback にも名前を設定
         scene.add(planeKodam);
     }
 
     // Load Gohst
     try {
-        // const gohstTexture = await textureLoader.loadAsync('/assets/gohst.avif'); // Removed: Loaded above
         if (gohstTexture) { // Check if texture loaded successfully
             const gohstAspectRatio = gohstTexture.image.width / gohstTexture.image.height;
             const gohstPlaneHeight = 2;
@@ -148,7 +168,6 @@ async function loadObjects(scene, textureLoader) {
 
     // Load Effect Planes
     try {
-        // const effectTexture = await textureLoader.loadAsync('/assets/effect.avif'); // Removed: Loaded above
         if (effectTexture) { // Check if texture loaded successfully
              const effectAspectRatio = effectTexture.image.width / effectTexture.image.height;
              const effectPlaneHeight = 3.0;
@@ -195,7 +214,6 @@ async function loadObjects(scene, textureLoader) {
 
     // Load Cards
     try {
-        // const cardsTexture = await textureLoader.loadAsync('/assets/cards.avif'); // Removed: Loaded above
         if (cardsTexture) { // Check if texture loaded successfully
             const cardAspectRatio = 0.65;
             const cardPlaneSize = 1.0;
@@ -245,8 +263,6 @@ async function loadObjects(scene, textureLoader) {
 
     // --- Create Ground Plane using CanvasTexture ---
     try {
-        // const bgTexture = await textureLoader.loadAsync('/assets/ground.avif'); // Removed
-        // const bgNoneTexture = await textureLoader.loadAsync('/assets/ground-none.avif'); // Removed
         if (bgTexture && bgNoneTexture) { // Check if textures loaded
              const canvas = document.createElement('canvas');
              const ctx = canvas.getContext('2d');
@@ -295,7 +311,6 @@ async function loadObjects(scene, textureLoader) {
 
     // --- Create Wall Plane ---
     try {
-        // const wallTexture = await textureLoader.loadAsync('/assets/wall.avif'); // Removed
         if(wallTexture) { // Check if texture loaded
             wallTexture.wrapS = THREE.RepeatWrapping;
             wallTexture.wrapT = THREE.RepeatWrapping;
@@ -407,5 +422,28 @@ async function loadObjects(scene, textureLoader) {
     // --- End Link Planes ---
 }
 
+// 表情をローテーションさせる関数
+function rotateKodamExpression() {
+  if (!planeKodam || !planeKodam.material) {
+    console.warn('Kodam plane or material not ready for expression change.');
+    return;
+  }
+
+  // 次の表情インデックスを計算 (リストの末尾に来たら最初に戻る)
+  currentExpressionIndex = (currentExpressionIndex + 1) % expressionKeys.length;
+  const nextExpressionKey = expressionKeys[currentExpressionIndex];
+  const nextTexture = kodamExpressions[nextExpressionKey];
+
+  if (nextTexture) {
+    planeKodam.material.map = nextTexture;
+    planeKodam.userData.needsShakeAnimation = true;
+    // console.log(`Changed expression to: ${nextExpressionKey}`); // デバッグ用
+  } else {
+    console.warn(`Texture for expression "${nextExpressionKey}" is not loaded.`);
+    // エラーが発生した場合、次のクリックで次の表情に進むようにインデックスは更新しておく
+  }
+}
+
 // Export loaded objects and the loader function
-export { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes }; 
+// rotateKodamExpression もエクスポートに追加
+export { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes, rotateKodamExpression }; 

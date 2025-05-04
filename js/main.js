@@ -3,7 +3,7 @@ import { scene, camera, renderer, controls, initializeRenderer } from './sceneSe
 import { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes } from './objectLoader.js';
 import { setupNebula } from './nebulaSetup.js'; // Import setupNebula function
 import { startAnimationLoop } from './animation.js';
-import { initializeRaycaster } from './raycasterHandler.js'; // Import initializeRaycaster function
+import { initRaycaster, updateClickableObjects } from './raycasterHandler.js'; // Import initRaycaster and updateClickableObjects functions
 
 // Main initialization function
 async function main() {
@@ -19,10 +19,8 @@ async function main() {
     // Setup Nebula system
     const nebulaSystem = await setupNebula(scene); // Get nebulaSystem from setup function
 
-    // --- Raycasterの初期化 ---
-    // Add linkMeshes to the array of clickable objects
-    const objectsToClick = [planeKodam, planeGohst, ...cardMeshes, ...linkMeshes]; 
-    initializeRaycaster(renderer, camera, objectsToClick); 
+    // --- Raycasterの初期化 (呼び出し方を修正) ---
+    initRaycaster(camera); 
     // ----------------------
 
     // Prepare context for the animation loop
@@ -42,6 +40,9 @@ async function main() {
 
     // Start the animation loop
     startAnimationLoop(animationContext);
+
+    // オブジェクト読み込み後にクリック可能オブジェクトを更新
+    updateClickableObjects();
 }
 
 // Run the main function
