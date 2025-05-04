@@ -11,7 +11,7 @@ const linkMeshes = []; // Array to hold clickable link meshes
 async function loadObjects(scene, textureLoader) {
     // Load Kodam
     try {
-        const kodamTexture = await textureLoader.loadAsync('assets/kodam.png');
+        const kodamTexture = await textureLoader.loadAsync('assets/kodam.avif');
         const kodamAspectRatio = kodamTexture.image.width / kodamTexture.image.height;
         const kodamPlaneHeight = 5;
         const kodamPlaneWidth = kodamPlaneHeight * kodamAspectRatio;
@@ -84,7 +84,7 @@ async function loadObjects(scene, textureLoader) {
 
     // Load Gohst
     try {
-        const gohstTexture = await textureLoader.loadAsync('assets/gohst.png');
+        const gohstTexture = await textureLoader.loadAsync('assets/gohst.avif');
         const gohstAspectRatio = gohstTexture.image.width / gohstTexture.image.height;
         const gohstPlaneHeight = 2;
         const gohstPlaneWidth = gohstPlaneHeight * gohstAspectRatio;
@@ -115,7 +115,7 @@ async function loadObjects(scene, textureLoader) {
 
     // Load Effect Planes
     try {
-        const effectTexture = await textureLoader.loadAsync('assets/effect.png');
+        const effectTexture = await textureLoader.loadAsync('assets/effect.avif');
         const effectAspectRatio = effectTexture.image.width / effectTexture.image.height;
         const effectPlaneHeight = 3.0;
         const effectPlaneWidth = effectPlaneHeight * effectAspectRatio;
@@ -159,7 +159,7 @@ async function loadObjects(scene, textureLoader) {
 
     // Load Cards
     try {
-        const cardsTexture = await textureLoader.loadAsync('assets/cards.png');
+        const cardsTexture = await textureLoader.loadAsync('assets/cards.avif');
         const cardAspectRatio = 0.65;
         const cardPlaneSize = 1.0;
         const cardPositions = [
@@ -206,8 +206,8 @@ async function loadObjects(scene, textureLoader) {
     // --- Create Ground Plane using CanvasTexture ---
     try {
         // 1. Load both background textures
-        const bgTexture = await textureLoader.loadAsync('assets/ground.png');
-        const bgNoneTexture = await textureLoader.loadAsync('assets/ground-none.png');
+        const bgTexture = await textureLoader.loadAsync('assets/ground.avif');
+        const bgNoneTexture = await textureLoader.loadAsync('assets/ground-none.avif');
 
         // 2. Create a Canvas element
         const canvas = document.createElement('canvas');
@@ -229,9 +229,9 @@ async function loadObjects(scene, textureLoader) {
             ctx.fillStyle = ctx.createPattern(bgNoneImg, 'repeat');
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw the central background.png
+            // Draw the central background.avif
             // Calculate the size and position to draw the central image
-            // Assuming background.png should cover the central area of the ground plane.
+            // Assuming background.avif should cover the central area of the ground plane.
             // Let's say the central image should cover 1/4th of the canvas width/height.
             const centralImageSize = canvasSize / 8; // Adjust this ratio as needed
             const centralImageX = (canvasSize - centralImageSize) / 2;
@@ -274,7 +274,7 @@ async function loadObjects(scene, textureLoader) {
 
     // --- Create Wall Plane ---
     try {
-        const wallTexture = await textureLoader.loadAsync('assets/wall.png');
+        const wallTexture = await textureLoader.loadAsync('assets/wall.avif');
         // Configure texture wrapping and repetition for tiling (optional)
         wallTexture.wrapS = THREE.RepeatWrapping;
         wallTexture.wrapT = THREE.RepeatWrapping;
@@ -308,13 +308,13 @@ async function loadObjects(scene, textureLoader) {
 
     // Define links for each row
     const bottomLinks = [
-        { name: 'x', file: 'assets/x.png', url: 'https://x.com/kodam' },
-        { name: 'github', file: 'assets/github.png', url: 'https://github.com/oppai' },
-        { name: 'cv', file: 'assets/cv.png', url: 'https://gist.github.com/oppai/5e10c6bd03c9d53f50564a369be2f940' }
+        { name: 'x', file: 'assets/x.avif', url: 'https://x.com/kodam' },
+        { name: 'github', file: 'assets/github.avif', url: 'https://github.com/oppai' },
+        { name: 'cv', file: 'assets/cv.avif', url: 'https://gist.github.com/oppai/5e10c6bd03c9d53f50564a369be2f940' }
     ];
     const topLinks = [
-        { name: 'ai', file: 'assets/ai.png', url: 'https://note.com/0ppai' },
-        { name: 'poker', file: 'assets/poker.png', url: 'https://note.com/brianpoker' }
+        { name: 'ai', file: 'assets/ai.avif', url: 'https://note.com/0ppai' },
+        { name: 'poker', file: 'assets/poker.avif', url: 'https://note.com/brianpoker' }
     ];
 
     // Function to create and position planes for a row
