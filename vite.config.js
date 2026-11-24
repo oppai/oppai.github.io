@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  optimizeDeps: { include: ['three-nebula/build/three-nebula.js'] },
+  resolve: {
+    alias: {
+      'uuid/v1': fileURLToPath(new URL('./js/uuid-v1.js', import.meta.url)),
+    },
+  },
   build: {
     outDir: 'docs',
     rollupOptions: {
