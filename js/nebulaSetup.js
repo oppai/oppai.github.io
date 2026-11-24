@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-// The package's ESM build references undeclared Babel helpers. Vite wraps its UMD build.
-import { System, SpriteRenderer } from 'three-nebula/build/three-nebula.js';
+// Bundle Nebula from its ESM entry so it uses the project's patched dependencies.
+import { System, SpriteRenderer } from 'three-nebula';
 import nebulaConfig from '../public/assets/nebulaConfig.json';
 
 async function setupNebula(scene) {
