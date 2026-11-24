@@ -9,18 +9,14 @@ let clickableObjects = []; // kodam も含めるように変更する可能性�
 // クリックカウンター
 let kodamClickCount = 0;
 
-function initRaycaster(mainCamera) {
+function initRaycaster(mainCamera, canvas) {
     camera = mainCamera;
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // クリック可能なオブジェクトを更新 (初期化時)
-    // planeKodam が初期化された後に呼ぶ必要があるため、main.js 側で実行する方が良いかもしれない
-    // ここでは一旦 linkMeshes のみ初期化
-    clickableObjects = [...linkMeshes];
-
-    window.addEventListener('click', onClick, false);
-    window.addEventListener('mousemove', onMouseMove, false);
+    canvas.addEventListener('click', onClick, false);
+    canvas.addEventListener('mousemove', onMouseMove, false);
+    canvas.addEventListener('mouseleave', () => { document.body.style.cursor = 'default'; });
 }
 
 // クリック可能なオブジェクトのリストを更新する関数
@@ -42,8 +38,6 @@ function onClick(event) {
     raycaster.setFromCamera(mouse, camera);
 
     // クリック可能なオブジェクトとの交差を検出
-    // updateClickableObjects を呼んで最新のリストを使う
-    updateClickableObjects();
     const intersects = raycaster.intersectObjects(clickableObjects);
 
     if (intersects.length > 0) {
@@ -77,7 +71,6 @@ function onMouseMove(event) {
     raycaster.setFromCamera(mouse, camera);
 
     // クリック可能なオブジェクトとの交差を検出
-    updateClickableObjects(); // マウスオーバー検出のためにもリストを更新
     const intersects = raycaster.intersectObjects(clickableObjects);
 
     // カーソルスタイルの変更

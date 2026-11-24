@@ -1,51 +1,47 @@
 import * as THREE from 'three';
 import { scene, camera, renderer, controls, initializeRenderer } from './sceneSetup.js';
-import { loadObjects, planeKodam, planeGohst, cardMeshes, effectMeshes, auraParticles, linkMeshes } from './objectLoader.js';
-import { setupNebula } from './nebulaSetup.js'; // Import setupNebula function
+import {
+    loadCore, loadDecorations, loadLinks, loadExpressions, planeKodam, planeGohst,
+    cardMeshes, effectMeshes, auraParticles, linkMeshes,
+} from './objectLoader.js';
 import { startAnimationLoop } from './animation.js';
-import { initRaycaster, updateClickableObjects } from './raycasterHandler.js'; // Import initRaycaster and updateClickableObjects functions
+import { initRaycaster, updateClickableObjects } from './raycasterHandler.js';
 
-// Main initialization function
 async function main() {
-    // Initialize renderer and append to container
     initializeRenderer('canvas-container');
 
-    // Initialize texture loader
     const textureLoader = new THREE.TextureLoader();
+    await loadCore(scene, textureLoader);
 
-    // Load scene objects (Kodam, Gohst, Cards, Effects, Aura)
-    await loadObjects(scene, textureLoader);
-
-    // Setup Nebula system
-    const nebulaSystem = await setupNebula(scene); // Get nebulaSystem from setup function
-
-    // --- Raycasterの初期化 (呼び出し方を修正) ---
-    initRaycaster(camera); 
-    // ----------------------
-
-    // Prepare context for the animation loop
     const animationContext = {
-        scene,
-        camera,
-        renderer,
-        controls,
-        planeKodam, // Exported from objectLoader
-        planeGohst, // Exported from objectLoader
-        cardMeshes, // Exported from objectLoader
-        effectMeshes, // Exported from objectLoader
-        auraParticles, // Exported from objectLoader
-        linkMeshes, // Exported from objectLoader (Pass it to animation if needed, otherwise raycaster is enough)
-        nebulaSystem // Returned from setupNebula
+        scene, camera, renderer, controls, planeKodam, cardMeshes, effectMeshes, linkMeshes,
     };
-
-    // Start the animation loop
-    startAnimationLoop(animationContext);
-
-    // オブジェクト読み込み後にクリック可能オブジェクトを更新
+    initRaycaster(camera, renderer.domElement);
     updateClickableObjects();
+
+    startAnimationLoop(animationContext);
+    performance.mark('portfolio-first-webgl-frame');
+    document.body.classList.add('scene-ready');
+
+    // Leave a paint opportunity for the first frame before starting optional work.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const stages = [
+        loadLinks(scene, textureLoader).then(allLinksLoaded => {
+            updateClickableObjects();
+            if (allLinksLoaded) document.body.classList.add('scene-links-ready');
+        }),
+        loadExpressions(textureLoader),
+        loadDecorations(scene, textureLoader).then(() => {
+            Object.assign(animationContext, { planeGohst, auraParticles });
+        }),
+        import('./nebulaSetup.js')
+            .then(({ setupNebula }) => setupNebula(scene))
+            .then(system => { animationContext.nebulaSystem = system; }),
+    ];
+    for (const result of await Promise.allSettled(stages)) {
+        if (result.status === 'rejected') console.error('Optional scene setup failed:', result.reason);
+    }
 }
 
-// Run the main function
-main().catch(error => {
-    console.error("Initialization failed:", error);
-}); 
+main().catch(error => console.error('3D scene initialization failed:', error));
