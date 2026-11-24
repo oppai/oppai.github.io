@@ -32,12 +32,38 @@
       gtag('js', new Date());
       gtag('config', 'G-KM6KL71CVX');
     </script>
-    <!-- Importmap for three.js -->
+    <link rel="preload" as="image" crossorigin href="/assets/kodam.avif" fetchpriority="low">
+    <link rel="preload" as="image" crossorigin href="/assets/wall.avif" fetchpriority="low">
+    <link rel="preload" as="image" crossorigin href="/assets/floor-BKv02cnx.webp" fetchpriority="low">
 
-
-    <!-- Load three-nebula via script tag (UMD compatibility) -->
-    <script src="https://cdn.jsdelivr.net/npm/three-nebula@10.0.3/build/three-nebula.js"></script> 
-    <!-- Note: Using .min.js version -->
+    <style>
+      html, body { margin: 0; background: #000; color: #fff; }
+      #canvas-container, #scene-preview { position: fixed; inset: 0; }
+      #canvas-container { visibility: hidden; }
+      #canvas-container canvas { display: block; }
+      #scene-preview img { width: 100%; height: 100%; object-fit: contain; }
+      .scene-ready #canvas-container { visibility: visible; }
+      .scene-ready #scene-preview { display: none; }
+      #profile-links {
+        position: fixed;
+        inset: auto 0 0;
+        padding: .75rem .5rem max(.75rem, env(safe-area-inset-bottom));
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: .5rem;
+        background: rgba(0, 0, 0, .8);
+      }
+      #profile-links a {
+        color: #fff;
+        padding: .5rem .65rem;
+        font: 1rem system-ui, sans-serif;
+      }
+      .scene-links-ready #profile-links:not(:focus-within) {
+        clip-path: inset(50%);
+        pointer-events: none;
+      }
+    </style>
 
     <script>
       window.addEventListener('DOMContentLoaded', () => {
@@ -49,19 +75,23 @@
         console.log("🐾 ゆっくりしていってね。");
       });
     </script>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-        }
-      }
-    </script>
-    <script type="module" crossorigin src="/assets/index-Cw6pNtEk.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-three-DGfO6NI1.js">
+    <script type="module" crossorigin src="/assets/index-D3kUSUgz.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-three-DnTTEpi_.js">
   </head>
 
   <body>
-    <div id="canvas-container" style="width: 100%; height: 100vh; overflow: hidden;"></div> 
+    <div id="canvas-container"></div>
+    <picture id="scene-preview">
+      <source media="(max-width: 600px)" srcset="/assets/preview-480-DOjV-veN.avif">
+      <img src="/assets/preview-800-DcG0CJBX.avif" width="800" height="800"
+           alt="Kodam’s 3D profile scene" fetchpriority="high">
+    </picture>
+    <nav id="profile-links" aria-label="Profile links">
+      <a href="https://x.com/kodam" data-icon="x">X</a>
+      <a href="https://github.com/oppai" data-icon="github">GitHub</a>
+      <a href="https://gist.github.com/oppai/5e10c6bd03c9d53f50564a369be2f940" data-icon="cv">CV</a>
+      <a href="https://note.com/0ppai" data-icon="ai">AI</a>
+      <a href="https://note.com/brianpoker" data-icon="poker">Poker</a>
+    </nav>
   </body>
 </html>
