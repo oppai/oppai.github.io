@@ -1,16 +1,39 @@
 name: Purge Cloudflare Cache
 
 on:
-  workflow_run:
-    workflows: ['pages build and deployment']
+  push:
     branches: [master]
-    types: [completed]
+
+permissions:
+  actions: read
 
 jobs:
   purge-cache:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for GitHub Pages to deploy this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in {1..60}; do
+            conclusion=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/runs" \
+              -f head_sha="$GITHUB_SHA" \
+              --jq 'first(.workflow_runs[] | select(.path == "dynamic/pages/pages-build-deployment")) | .conclusion // ""')
+
+            case "$conclusion" in
+              success) exit 0 ;;
+              "")
+                sleep 10
+                ;;
+              *)
+                echo "GitHub Pages deployment ended with: $conclusion"
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "Timed out waiting for GitHub Pages deployment of $GITHUB_SHA"
+          exit 1
       - name: Purge cache
         env:
           CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
