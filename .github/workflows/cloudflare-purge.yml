@@ -5,23 +5,17 @@ on:
     workflows: ['pages build and deployment']
     branches: [master]
     types: [completed]
-  workflow_dispatch:
-
-permissions: {}
 
 jobs:
   purge-cache:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Purge cache after Pages deployment
+      - name: Purge cache
         env:
           CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
           CLOUDFLARE_AUTH_KEY: ${{ secrets.CLOUDFLARE_AUTH_KEY }}
         run: |
-          set -o pipefail
-          curl --fail --silent --show-error \
-            -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE/purge_cache" \
-            -H "Authorization: Bearer $CLOUDFLARE_AUTH_KEY" \
-            -H 'Content-Type: application/json' \
-            -d '{"hosts":["oppai.ninja"]}' | jq -e '.success == true'
+          curl -X POST https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE/purge_cache \
+              -H "Authorization: Bearer $CLOUDFLARE_AUTH_KEY" \
+              -d '{"hosts":["oppai.ninja"]}'
