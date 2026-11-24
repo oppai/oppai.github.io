@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   purge-cache:
+    environment: master build
     runs-on: ubuntu-latest
     steps:
       - name: Wait for GitHub Pages to deploy this commit
@@ -38,7 +39,18 @@ jobs:
         env:
           CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
           CLOUDFLARE_AUTH_KEY: ${{ secrets.CLOUDFLARE_AUTH_KEY }}
+        shell: bash
         run: |
-          curl -X POST https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE/purge_cache \
-              -H "Authorization: Bearer $CLOUDFLARE_AUTH_KEY" \
-              -d '{"hosts":["oppai.ninja"]}'
+          : "${CLOUDFLARE_ZONE:?Set the CLOUDFLARE_ZONE GitHub Actions secret}"
+          : "${CLOUDFLARE_AUTH_KEY:?Set the CLOUDFLARE_AUTH_KEY GitHub Actions secret}"
+
+          curl --silent --show-error --fail-with-body \
+            --request POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE/purge_cache" \
+            --header "Authorization: Bearer $CLOUDFLARE_AUTH_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{"hosts":["oppai.ninja"]}' |
+            jq --exit-status --raw-output '
+              if .success == true then "Cloudflare accepted the cache purge"
+              else error("Cloudflare rejected the cache purge: " + ((.errors // []) | tostring))
+              end
+            '
