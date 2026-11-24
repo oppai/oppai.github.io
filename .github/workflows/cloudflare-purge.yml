@@ -6,6 +6,7 @@ on:
 
 permissions:
   actions: read
+  contents: read
 
 jobs:
   purge-cache:
@@ -54,3 +55,22 @@ jobs:
               else error("Cloudflare rejected the cache purge: " + ((.errors // []) | tostring))
               end
             '
+      - name: Warm homepage and asset caches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          asset_paths=$(gh api "repos/$GITHUB_REPOSITORY/git/trees/$GITHUB_SHA?recursive=1" \
+            --jq '.tree[] | select(.type == "blob" and (.path | startswith("docs/assets/"))) | .path | ltrimstr("docs/") | split("/") | map(@uri) | join("/")')
+
+          if [[ -z "$asset_paths" ]]; then
+            echo "No published assets found for $GITHUB_SHA"
+            exit 1
+          fi
+
+          while IFS= read -r asset_path; do
+            curl --fail --silent --show-error --compressed --max-time 30 \
+              --output /dev/null \
+              --write-out '%{url_effective} HTTP %{http_code}, CF-Cache-Status: %header{cf-cache-status}\n' \
+              "https://oppai.ninja/$asset_path"
+          done <<< "$(printf '\n%s' "$asset_paths")"
