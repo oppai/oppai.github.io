@@ -17,9 +17,15 @@ const kodamExpressions = {
 const expressionKeys = Object.keys(kodamExpressions); // ['kodam', 'tru', 'sup']
 let currentExpressionIndex = 0;
 
+async function loadColorTexture(loader, url) {
+    const texture = await loader.loadAsync(url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+}
+
 async function loadTexture(loader, url) {
     try {
-        return await loader.loadAsync(url);
+        return await loadColorTexture(loader, url);
     } catch (error) {
         console.error(`Failed to load texture ${url}:`, error);
         return null;
@@ -28,9 +34,9 @@ async function loadTexture(loader, url) {
 
 async function loadCore(scene, textureLoader) {
     const [initialKodamTexture, floorTexture, wallTexture] = await Promise.all([
-        textureLoader.loadAsync('/assets/kodam.avif'),
-        textureLoader.loadAsync(floorUrl),
-        textureLoader.loadAsync('/assets/wall.avif'),
+        loadColorTexture(textureLoader, '/assets/kodam.avif'),
+        loadColorTexture(textureLoader, floorUrl),
+        loadColorTexture(textureLoader, '/assets/wall.avif'),
     ]);
     kodamExpressions.kodam = initialKodamTexture;
     const kodamAspectRatio = initialKodamTexture.image.width / initialKodamTexture.image.height;
